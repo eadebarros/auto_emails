@@ -26,87 +26,78 @@
 <body>
 <?php
 
-
-
 error_reporting('E_WARNING');
 //set_time_limit(3000);
 require('include/WideImage.php');
  
 
 function linksprodutos($link,$utms,$num){
-$api = "https://api.mercadolibre.com/items/".$link;
+  
+  $api = "https://api.mercadolibre.com/items/".$link;
+  
+  $curl = curl_init();
+  
+  curl_setopt( $curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows; U; Windows NT 5.1; rv:1.7.3) Gecko/20041001 Firefox/0.10.1" );
+  curl_setopt ($curl, CURLOPT_URL, $api);
+  curl_setopt ($curl, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt ($curl, CURLOPT_FOLLOWLOCATION, true);
+  curl_setopt ($curl, CURLOPT_SSL_VERIFYPEER, false);
+  curl_setopt ($curl, CURLOPT_CONNECTTIMEOUT, 20);
 
-//die($api);
+  $data = curl_exec($curl);
+  //curl_close($curl);
 
-$curl = curl_init();
-curl_setopt( $curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows; U; Windows NT 5.1; rv:1.7.3) Gecko/20041001 Firefox/0.10.1" );
-curl_setopt ($curl, CURLOPT_URL, $api);
-curl_setopt ($curl, CURLOPT_RETURNTRANSFER, true);
-curl_setopt ($curl, CURLOPT_FOLLOWLOCATION, true);
-curl_setopt ($curl, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt ($curl, CURLOPT_CONNECTTIMEOUT, 20);
+  $json = json_decode($data);
 
-$data = curl_exec($curl);
-curl_close($curl);
+  
+  $produto = $json->title;
+  $preco = $json->price;
+  $original_price = $json->original_price;
+  $permalink = $json->permalink;
+  $estoque = $json->available_quantity;
+  $img = $json->pictures[0]->url;
 
-$json = json_decode($data);
-print_r($json);
-foreach($json as $produto){
-  print_r($produto);
-  //echo "<p>" . "<img src='". $produto->thumbnail ."'><br>" . $produto->title . " <br> Preço: R$ " . $produto->price . "</p>";
+
+  copy($img, 'images/'.$num.'.jpg');
+
+  WideImage::load('images/'.$num.'.jpg')->resize(160, 160)->saveToFile('images/'.$num.'.jpg');
+
+  return '
+  <span style="display: inline-block; width: 190px; vertical-align: middle;" class="product" id="ipad">
+
+        <div style="width: 100%; overflow: hidden; padding-top: 15px; padding-bottom: 10px; text-align: center;">
+            <a href="'.$permalink.$utms.'" title="'.$produto.'" style="font-size: 17px; font-family: Verdana, sans-serif; color: #010101;">
+            <img src="images/'.$num.'.jpg" alt="'.$produto.'" border="0" style="margin: 0; padding: 0;" /></a>
+        </div>
+        
+        <div style="width: 100%; overflow: hidden; font-family: Verdana, sans-serif;text-transform:Capitalize; font-weight: bold; font-size: 12px; text-align: center; color: #616161; padding-bottom: 0px; line-height: 18px;">
+        '.$produto.'
+        </div>
+        
+        <div style="width: auto; overflow: hidden; font-family: Verdana, sans-serif; font-size: 11px; color: #474646; text-align: center; line-height: 15px;">
+        	'.$de = ($original_price != "" ? 'de <del>'.$original_price .'</del>' : '&nbsp;').'
+        </div>
+        <div style="width: auto; overflow: hidden; font-family: Verdana, sans-serif; font-size: 11px; color: #474646; text-align: center; line-height: 15px;">
+         por <span style="color:#000000;"><strong>'.$preco.'</strong></span>
+        </div>
+        
+        <div style="width: 100%; overflow: hidden; font-family: Verdana, sans-serif; font-weight: bold;font-size: 12px; color: #8b040b; text-align: center; padding-bottom: 2px;">
+        	Nx <span style="color:#606060">de</span> R$ 0,00
+        </div>
+        <div style="width: auto; overflow: hidden; font-family: Verdana, sans-serif; font-size: 11px; color: #474646; text-align: center; line-height: 15px;">
+         <center><span style="padding-bottom: 5px;"><a href="'.$permalink.$utms.'" style="color: #101010; text-transform: uppercase; text-decoration: none; font-size: 12px; font-family: Verdana, sans-serif; display: block; padding: 3px; width: 50%; font-weight: bold; background-color: #dddbdb; border-radius: 3px;">VEJA MAIS</a></span></center>
+        </div>
+
+  </span>';
+
 
 }
-
-
-
-
-//die();
-
-
-
-
-
-
-
-copy($img[0], 'images/'.$num.'.jpg');
-
-WideImage::load('images/'.$num.'.jpg')->resize(160, 160)->saveToFile('images/'.$num.'.jpg');
-return '
-<span style="display: inline-block; width: 190px; vertical-align: middle;" class="product" id="ipad">
-
-      <div style="width: 100%; overflow: hidden; padding-top: 15px; padding-bottom: 10px; text-align: center;">
-          <a href="'.$link.$utms.'" title="'.$produto[0].'" style="font-size: 17px; font-family: Verdana, sans-serif; color: #010101;">
-          <img src="images/'.$num.'.jpg" alt="'.$produto[0].'" border="0" style="margin: 0; padding: 0;" /></a>
-      </div>
-      
-      <div style="width: 100%; overflow: hidden; font-family: Verdana, sans-serif;text-transform:Capitalize; font-weight: bold; font-size: 12px; text-align: center; color: #616161; padding-bottom: 0px; line-height: 18px;">
-      '.$produto[0].'
-      </div>
-      
-      <div style="width: auto; overflow: hidden; font-family: Verdana, sans-serif; font-size: 11px; color: #474646; text-align: center; line-height: 15px;">
-      	'.$de = ($depor[0] != "" ? 'de <del>'.$depor[0] .'</del>' : '&nbsp;').'
-      </div>
-      <div style="width: auto; overflow: hidden; font-family: Verdana, sans-serif; font-size: 11px; color: #474646; text-align: center; line-height: 15px;">
-       por <span style="color:#000000;"><strong>'.$preco[0].'</strong></span>
-      </div>
-      
-      <div style="width: 100%; overflow: hidden; font-family: Verdana, sans-serif; font-weight: bold;font-size: 12px; color: #8b040b; text-align: center; padding-bottom: 2px;">
-      	'.$d[0].'<span style="color:#606060">de</span> R$'.$d[1].'
-      </div>
-      <div style="width: auto; overflow: hidden; font-family: Verdana, sans-serif; font-size: 11px; color: #474646; text-align: center; line-height: 15px;">
-       <center><span style="padding-bottom: 5px;"><a href="'.$link.$utms.'" style="color: #101010; text-transform: uppercase; text-decoration: none; font-size: 12px; font-family: Verdana, sans-serif; display: block; padding: 3px; width: 50%; font-weight: bold; background-color: #dddbdb; border-radius: 3px;">VEJA MAIS</a></span></center>
-      </div>
-
-</span>';
-}
-
-
-
-
 
 
 if($_SERVER['REQUEST_METHOD'] == "POST") {
-	$likns = $_POST['links'];
+
+  $likns = $_POST['links'];
+  $likns = str_replace('-', '', $likns);
   $utms = $_POST['utms']; 
 	$likns = explode(',',$likns);
 
@@ -128,14 +119,21 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
         </td>';
     } 
 
-	for($i=1;$i<=(count($likns)-1); $i++){
+	/*for($i=1;$i<=(count($likns)-1); $i++){
 		$l = trim($likns[$i]);
 		$l = str_replace("-","",$l);
-		$l = ltrim($l);
+		/*$l = ltrim($l);
 		$l = str_replace(" ","",$l);
+    echo $l . "<br>";
 
 		$pro[] = linksprodutos($l,$utms,$i);	
-	}
+	}*/
+  $n = 1;
+
+  foreach ($likns as $code) {
+    $pro[] = linksprodutos($code,$utms,$n);  
+    $n++;
+  }
 
 echo '
     <div style="width:1000px;margin:0 auto;"> 
